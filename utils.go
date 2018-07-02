@@ -1,7 +1,7 @@
 package neon
 
 import (
-	"./src/utils"
+	"github.com/yitimo/neon-go/libs/utils"
 )
 
 // Utils test function

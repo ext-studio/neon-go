@@ -1,7 +1,7 @@
 package neon
 
 import (
-	"./src/transaction"
+	"github.com/yitimo/neon-go/libs/transaction"
 )
 
 // Transaction test function

@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 
-	"../libs/transaction"
-	"../libs/utils"
-	"../libs/wallet"
+	"github.com/yitimo/neon-go"
+	"github.com/yitimo/neon-go/libs/wallet"
 )
 
 func main() {
-	fmt.Println(transaction.Transaction())
-	fmt.Println(utils.Utils())
-	fmt.Println(wallet.Wallet())
+	wallet.Wallet()
+	fmt.Println(neon.Transaction())
+	fmt.Println(neon.Utils())
+	fmt.Println(neon.Wallet())
 }

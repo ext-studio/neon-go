@@ -1,7 +1,7 @@
 package neon
 
 import (
-	"./src/wallet"
+	"github.com/yitimo/neon-go/libs/wallet"
 )
 
 // Wallet test function
