@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	// WIFVersion is the version used to decode and encode WIF keys.
-	WIFVersion = 0x80
+	// wifVersion is the version used to decode and encode WIF keys.
+	wifVersion = 0x80
 	n          = 16384
 	r          = 8
 	p          = 8
@@ -28,33 +28,18 @@ const (
 
 var nepHeader = []byte{0x01, 0x42}
 
-// Wallet test function
-func Wallet() string {
-	return "Wallet"
-}
-
-// GeneratePrivateKey generate new random private key
-func GeneratePrivateKey() (string, error) {
+// Generate new random private key string
+func Generate() (string, error) {
 	c := crypto.NewEllipticCurve()
 	b := make([]byte, c.N.BitLen()/8+8)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
 		return "", err
 	}
-
 	d := new(big.Int).SetBytes(b)
 	d.Mod(d, new(big.Int).Sub(c.N, big.NewInt(1)))
 	d.Add(d, big.NewInt(1))
 
 	return hex.EncodeToString(d.Bytes()), nil
-}
-
-// Generate generate new NEP-6 wallet
-func Generate() (interface{}, error) {
-	privKey, err := GeneratePrivateKey()
-	if err != nil {
-		return nil, err
-	}
-	return map[string]string{"PrivateKey": privKey}, nil
 }
 
 // Priv2Pub get public key from private key
@@ -71,7 +56,6 @@ func Priv2Pub(priv string) (string, error) {
 	if !c.IsOnCurve(point) {
 		return "", errors.New("failed to derive public key using elliptic curve")
 	}
-
 	bx := point.X.Bytes()
 	padded := append(
 		bytes.Repeat(
@@ -80,22 +64,43 @@ func Priv2Pub(priv string) (string, error) {
 		),
 		bx...,
 	)
-
 	prefix := []byte{0x03}
 	if point.Y.Bit(0) == 0 {
 		prefix = []byte{0x02}
 	}
 	b := append(prefix, padded...)
-
 	return hex.EncodeToString(b), nil
 }
 
 // Pub2Addr get address from public key
 func Pub2Addr(pub string) (string, error) {
-	b, err := hex.DecodeString(pub)
+	b, err := signature(pub)
 	if err != nil {
 		return "", err
 	}
+	b = append([]byte{0x17}, b...)
+
+	sha := sha256.New()
+	sha.Write(b)
+	hash := sha.Sum(nil)
+
+	sha.Reset()
+	sha.Write(hash)
+	hash = sha.Sum(nil)
+
+	b = append(b, hash[0:4]...)
+
+	address := crypto.Base58Encode(b)
+
+	return address, nil
+}
+
+func signature(pub string) ([]byte, error) {
+	b, err := hex.DecodeString(pub)
+	if err != nil {
+		return nil, err
+	}
+
 	b = append([]byte{0x21}, b...)
 	b = append(b, 0xAC)
 
@@ -108,21 +113,7 @@ func Pub2Addr(pub string) (string, error) {
 	ripemd.Write(hash)
 	hash = ripemd.Sum(nil)
 
-	hash = append([]byte{0x17}, hash...)
-
-	sha.Reset()
-	sha.Write(b)
-	hash2 := sha.Sum(nil)
-
-	sha.Reset()
-	sha.Write(hash2)
-	hash2 = sha.Sum(nil)
-
-	hash = append(hash, hash[0:4]...)
-
-	address := crypto.Base58Encode(hash)
-
-	return address, nil
+	return hash, nil
 }
 
 // Priv2Addr get address from private key
@@ -135,39 +126,27 @@ func Priv2Addr(priv string) (string, error) {
 }
 
 // Priv2Wif get wif from private key
-func Priv2Wif(priv string, version byte, compressed bool) (string, error) {
-	if version == 0x00 {
-		version = WIFVersion
-	}
-	if len(priv) != 32 {
+func Priv2Wif(priv string) (string, error) {
+	if len(priv) != 64 {
 		return "", fmt.Errorf("invalid private key length: %d", len(priv))
 	}
-
 	pb, err := hex.DecodeString(priv)
 	if err != nil {
 		return "", err
 	}
 	buf := new(bytes.Buffer)
-	buf.WriteByte(version)
+	buf.WriteByte(wifVersion)
 	buf.Write(pb)
-	if compressed {
-		buf.WriteByte(0x01)
-	}
+	buf.WriteByte(0x01)
 
 	return crypto.Base58CheckEncode(buf.Bytes()), nil
 }
 
 // Wif2Priv get wif from private key
-func Wif2Priv(wif string, version byte) (string, error) {
+func Wif2Priv(wif string) (string, error) {
 	b, err := crypto.Base58CheckDecode(wif)
 	if err != nil {
 		return "", err
-	}
-	if version == 0x00 {
-		version = WIFVersion
-	}
-	if b[0] != version {
-		return "", fmt.Errorf("invalid WIF version got %d, expected %d", b[0], version)
 	}
 	// Derive the PrivateKey.
 	if err != nil {
@@ -189,7 +168,7 @@ func Wif2Priv(wif string, version byte) (string, error) {
 
 // Wif2Addr get address from wif
 func Wif2Addr(wif string) (string, error) {
-	priv, err := Wif2Priv(wif, WIFVersion)
+	priv, err := Wif2Priv(wif)
 	if err != nil {
 		return "", err
 	}
@@ -202,7 +181,7 @@ func NEP2Encode(wif, pwd string) (string, error) {
 	if aerr != nil {
 		return "", aerr
 	}
-	priv, perr := Wif2Priv(wif, WIFVersion)
+	priv, perr := Wif2Priv(wif)
 	if perr != nil {
 		return "", perr
 	}
@@ -212,43 +191,38 @@ func NEP2Encode(wif, pwd string) (string, error) {
 	}
 	addrHash := addrToHash(addr)[0:4]
 	phraseNorm := norm.NFC.Bytes([]byte(pwd))
-	derivedKey, err := scrypt.Key(phraseNorm, addrHash, 16384, 8, 8, 64)
+	derivedKey, err := scrypt.Key(phraseNorm, addrHash, n, r, p, keyLen)
 	if err != nil {
 		return "", err
 	}
-
 	derivedKey1 := derivedKey[:32]
 	derivedKey2 := derivedKey[32:]
 	xr := xor(privBytes, derivedKey1)
-
-	encrypted, err := crypto.AESEncrypt(derivedKey2, xr)
+	encrypted, err := crypto.AESEncrypt(xr, derivedKey2)
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Printf("\n\n\n%x  %x  %x\n\n\n", privBytes, xr, encrypted)
 	buf := new(bytes.Buffer)
 	buf.Write(nepHeader)
 	buf.WriteByte(nepFlag)
 	buf.Write(addrHash)
 	buf.Write(encrypted)
-
 	if buf.Len() != 39 {
 		return "", fmt.Errorf("invalid buffer length: expecting 39 bytes got %d", buf.Len())
 	}
-
 	return crypto.Base58CheckEncode(buf.Bytes()), nil
 }
 
 // NEP2Decode get wif from key
-func NEP2Decode(wif, pwd string) (string, error) {
-	b, err := crypto.Base58CheckDecode(wif)
+func NEP2Decode(key, pwd string) (string, error) {
+	b, err := crypto.Base58CheckDecode(key)
 	if err != nil {
 		return "", err
 	}
 	if err := validateNEP2Format(b); err != nil {
 		return "", err
 	}
-
 	addrHash := b[3:7]
 	// Normalize the passphrase according to the NFC standard.
 	phraseNorm := norm.NFC.Bytes([]byte(pwd))
@@ -256,29 +230,49 @@ func NEP2Decode(wif, pwd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	derivedKey1 := derivedKey[:32]
 	derivedKey2 := derivedKey[32:]
 	encryptedBytes := b[7:]
-
 	decrypted, err := crypto.AESDecrypt(encryptedBytes, derivedKey2)
 	if err != nil {
 		return "", err
 	}
-
 	privBytes := xor(decrypted, derivedKey1)
 
-	// Rebuild the private key.
-	privKey, err := NewPrivateKeyFromBytes(privBytes)
+	fmt.Printf("\n\n\n%x  %x  %x\n\n\n", privBytes, decrypted, encryptedBytes)
+
+	if !compareAddressHash(privBytes, addrHash) {
+		return "", errors.New("password mismatch")
+	}
+	return Priv2Wif(hex.EncodeToString(privBytes))
+}
+
+// Addr2Script get scripthash from address
+func Addr2Script(address string) (string, error) {
+	b, err := crypto.Base58CheckDecode(address)
 	if err != nil {
-		return s, err
+		return "", err
 	}
+	return hex.EncodeToString(b[1:21]), nil
+}
 
-	if !compareAddressHash(privKey, addrHash) {
-		return s, errors.New("password mismatch")
+// Script2Addr get address from scripthash
+func Script2Addr(script string) (string, error) {
+	bs, err := hex.DecodeString(script)
+	if err != nil {
+		return "", err
 	}
+	b := append([]byte{0x17}, bs...)
+	return crypto.Base58CheckEncode(b), nil
+}
 
-	return privKey.WIF()
+func compareAddressHash(priv []byte, hash []byte) bool {
+	address, err := Priv2Addr(hex.EncodeToString(priv))
+	if err != nil {
+		return false
+	}
+	addrHash := addrToHash(address)[0:4]
+	return bytes.Compare(addrHash, hash) == 0
 }
 
 func validateNEP2Format(b []byte) error {
