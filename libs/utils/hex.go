@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// Reverse hex
-func Reverse(str string) string {
+// ReverseHex hex
+func ReverseHex(str string) string {
 	pb, err := hex.DecodeString(str)
 	if err != nil {
 		return ""
@@ -16,8 +16,8 @@ func Reverse(str string) string {
 	return hex.EncodeToString(ReverseArray(pb))
 }
 
-// FromInt2Hex parse int value to hex string
-func FromInt2Hex(num int64, size int64, littleEnd bool) string {
+// Int2Hex parse int value to hex string
+func Int2Hex(num int64, size int64, littleEnd bool) string {
 	if num < 0 {
 		return ""
 	}
@@ -30,36 +30,45 @@ func FromInt2Hex(num int64, size int64, littleEnd bool) string {
 		hexstring = (strings.Repeat("0", (int)(size)) + hexstring)[len(hexstring):]
 	}
 	if littleEnd {
-		hexstring = Reverse(hexstring)
+		hexstring = ReverseHex(hexstring)
 	}
 	return hexstring
 }
 
-// FromInt2VarInt parse int value to var int hex string
-func FromInt2VarInt(num int64) string {
+// Int2VarInt parse int value to var int hex string
+func Int2VarInt(num int64) string {
 	if num < 0xfd {
-		return FromInt2Hex(num, 1, false)
+		return Int2Hex(num, 1, false)
 	} else if num <= 0xffff {
 		// uint16
-		return "fd" + FromInt2Hex(num, 2, true)
+		return "fd" + Int2Hex(num, 2, true)
 	} else if num <= 0xffffffff {
 		// uint32
-		return "fe" + FromInt2Hex(num, 4, true)
+		return "fe" + Int2Hex(num, 4, true)
 	} else {
 		// uint64
-		return "ff" + FromInt2Hex(num, 8, true)
+		return "ff" + Int2Hex(num, 8, true)
 	}
 }
 
-// FromNumber2Fixed parse number to fixed hex string
-func FromNumber2Fixed(num float64, size int64) string {
+// Number2Fixed parse number to fixed hex string
+func Number2Fixed(num float64, size int64) string {
 	fixedStr := fmt.Sprintf("%.8f", num)
-	return Reverse(fixedStr)[0 : size*2]
+	return ReverseHex(fixedStr)[0 : size*2]
 }
 
-// FromString parse from string
-func FromString(str string) string {
+// String2Hex parse from string
+func String2Hex(str string) string {
 	return hex.EncodeToString([]byte(str))
+}
+
+// Int2HexInt parse from int to hex
+func Int2HexInt(num int64) string {
+	rs := fmt.Sprintf("%x", num)
+	if len(rs)%2 == 1 {
+		return "0" + rs
+	}
+	return rs
 }
 
 // ToHash256 parse hex by SHA256 twice
