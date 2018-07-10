@@ -1,10 +1,5 @@
 package utils
 
-// Utils test function
-func Utils() string {
-	return "Utils"
-}
-
 // ReverseArray return a reversed version of the given byte slice.
 func ReverseArray(b []byte) []byte {
 	// Protect from big.Ints that have 1 len bytes.

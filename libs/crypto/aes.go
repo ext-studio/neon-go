@@ -5,6 +5,24 @@ import (
 	"crypto/cipher"
 )
 
+// AESEncryptV2 encode by AES output string
+func AESEncryptV2(src, key string) string {
+	rs, err := AESEncrypt([]byte(src), []byte(key))
+	if err != nil {
+		return ""
+	}
+	return (string)(rs)
+}
+
+// AESDecryptV2 decode by AES output string
+func AESDecryptV2(src, key string) string {
+	rs, err := AESDecrypt([]byte(src), []byte(key))
+	if err != nil {
+		return ""
+	}
+	return (string)(rs)
+}
+
 // AESEncrypt encrypts the key with the given source.
 func AESEncrypt(src, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
