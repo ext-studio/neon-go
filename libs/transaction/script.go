@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/yitimo/neon-go/libs/utils"
@@ -184,10 +183,34 @@ func (script *Script) serielize(useTailCall bool) bool {
 	return true
 }
 
+// AddString add astring
+func AddString(str string) (rs string) {
+	size := len(str) / 2
+	if size <= PUSHBYTES75 {
+		rs += utils.Int2Hex((int64)(size), 1, false)
+		rs += str
+		return
+	} else if size < 0x100 {
+		rs += Add(PUSHDATA1, "")
+		rs += utils.Int2Hex((int64)(size), 1, true)
+		rs += str
+		return
+	} else if size < 0x10000 {
+		rs += Add(PUSHDATA2, "")
+		rs += utils.Int2Hex((int64)(size), 2, true)
+		rs += str
+		return
+	} else { // if size < 0x100000000 {
+		rs += Add(PUSHDATA4, "")
+		rs += utils.Int2Hex((int64)(size), 4, true)
+		rs += str
+		return
+	}
+}
+
 func (script *Script) addString(hex string) bool {
 	size := len(hex) / 2
 	if size <= PUSHBYTES75 {
-		fmt.Println(utils.Int2Hex((int64)(size), 1, false))
 		script.script += utils.Int2Hex((int64)(size), 1, false)
 		script.script += hex
 	} else if size < 0x100 {
@@ -234,4 +257,13 @@ func (script *Script) add(op int, arg string) bool {
 		script.script += arg
 	}
 	return true
+}
+
+// Add add param
+func Add(op int64, arg string) string {
+	rs := utils.Int2Hex((int64)(op), 1, false)
+	if len(arg) > 0 {
+		rs += arg
+	}
+	return rs
 }
