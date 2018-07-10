@@ -6,11 +6,11 @@ import (
 	"github.com/yitimo/neon-go/libs/utils"
 )
 
+// Constants
 const (
-	// Constants
-	PUSH0       = 0x00 // An empty array of bytes is pushed onto the stack.
-	PUSHF       = PUSH0
-	PUSHBYTES1  = 0x01 // 0x01-0x4B The next  bytes is data to be pushed onto the stack
+	PUSH0       = 0x00  // An empty array of bytes is pushed onto the stack.
+	PUSHF       = PUSH0 // PUSHF False
+	PUSHBYTES1  = 0x01  // 0x01-0x4B The next  bytes is data to be pushed onto the stack
 	PUSHBYTES75 = 0x4B
 	PUSHDATA1   = 0x4C // The next byte contains the number of bytes to be pushed onto the stack.
 	PUSHDATA2   = 0x4D // The next two bytes contain the number of bytes to be pushed onto the stack.
