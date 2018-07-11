@@ -3,7 +3,7 @@ package transaction
 import (
 	"strings"
 
-	"github.com/yitimo/neon-go/libs/utils"
+	"github.com/yitimo/neon-go/libs/hex"
 )
 
 // GenerateScript parse given params to script
@@ -32,6 +32,6 @@ func ForAmount(value float64) string {
 	if target > 0 && target <= 16 {
 		return Add(PUSH1-1+target, "")
 	}
-	hexstring := utils.Int2HexInt((int64)(target))
-	return AddString(utils.ReverseHex(strings.Repeat("0", 16-len(hexstring)) + hexstring))
+	hexstring := hex.Int2HexInt((int64)(target))
+	return AddString(hex.Reverse(strings.Repeat("0", 16-len(hexstring)) + hexstring))
 }

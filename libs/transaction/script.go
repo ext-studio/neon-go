@@ -3,7 +3,7 @@ package transaction
 import (
 	"strings"
 
-	"github.com/yitimo/neon-go/libs/utils"
+	"github.com/yitimo/neon-go/libs/hex"
 )
 
 // Constants
@@ -167,18 +167,12 @@ func (script *Script) serielize(useTailCall bool) bool {
 	script.addInt(len(script.args))
 	script.add(PACK, "")
 
-	// right here
-
-	forOP := ""
-	for i := 0; i < len(script.operation); i++ {
-		forOP += utils.Int2Hex((int64)(script.operation[i]), 1, false)
-	}
-	script.addString(forOP)
+	script.addString(hex.FromString(script.operation))
 
 	if useTailCall {
-		script.add(TAILCALL, utils.ReverseHex(script.hash))
+		script.add(TAILCALL, hex.Reverse(script.hash))
 	} else {
-		script.add(APPCALL, utils.ReverseHex(script.hash))
+		script.add(APPCALL, hex.Reverse(script.hash))
 	}
 	return true
 }
@@ -187,44 +181,44 @@ func (script *Script) serielize(useTailCall bool) bool {
 func AddString(str string) (rs string) {
 	size := len(str) / 2
 	if size <= PUSHBYTES75 {
-		rs += utils.Int2Hex((int64)(size), 1, false)
+		rs += hex.FromInt((int64)(size), 1, false)
 		rs += str
 		return
 	} else if size < 0x100 {
 		rs += Add(PUSHDATA1, "")
-		rs += utils.Int2Hex((int64)(size), 1, true)
+		rs += hex.FromInt((int64)(size), 1, true)
 		rs += str
 		return
 	} else if size < 0x10000 {
 		rs += Add(PUSHDATA2, "")
-		rs += utils.Int2Hex((int64)(size), 2, true)
+		rs += hex.FromInt((int64)(size), 2, true)
 		rs += str
 		return
 	} else { // if size < 0x100000000 {
 		rs += Add(PUSHDATA4, "")
-		rs += utils.Int2Hex((int64)(size), 4, true)
+		rs += hex.FromInt((int64)(size), 4, true)
 		rs += str
 		return
 	}
 }
 
-func (script *Script) addString(hex string) bool {
-	size := len(hex) / 2
+func (script *Script) addString(hexStr string) bool {
+	size := len(hexStr) / 2
 	if size <= PUSHBYTES75 {
-		script.script += utils.Int2Hex((int64)(size), 1, false)
-		script.script += hex
+		script.script += hex.FromInt((int64)(size), 1, false)
+		script.script += hexStr
 	} else if size < 0x100 {
 		script.add(PUSHDATA1, "")
-		script.script += utils.Int2Hex((int64)(size), 1, true)
-		script.script += hex
+		script.script += hex.FromInt((int64)(size), 1, true)
+		script.script += hexStr
 	} else if size < 0x10000 {
 		script.add(PUSHDATA2, "")
-		script.script += utils.Int2Hex((int64)(size), 2, true)
-		script.script += hex
+		script.script += hex.FromInt((int64)(size), 2, true)
+		script.script += hexStr
 	} else { // if size < 0x100000000 {
 		script.add(PUSHDATA4, "")
-		script.script += utils.Int2Hex((int64)(size), 4, true)
-		script.script += hex
+		script.script += hex.FromInt((int64)(size), 4, true)
+		script.script += hexStr
 	}
 	//  else {
 	// 	return false
@@ -247,12 +241,12 @@ func (script *Script) addInt(num int) bool {
 	if num > 0 && num <= 16 {
 		return script.add(PUSH1-1+num, "")
 	}
-	hexstring := utils.Int2HexInt((int64)(num))
-	return script.addString(utils.ReverseHex(strings.Repeat("0", 16-len(hexstring)) + hexstring))
+	hexstring := hex.Int2HexInt((int64)(num))
+	return script.addString(hex.Reverse(strings.Repeat("0", 16-len(hexstring)) + hexstring))
 }
 
 func (script *Script) add(op int, arg string) bool {
-	script.script += utils.Int2Hex((int64)(op), 1, false)
+	script.script += hex.FromInt((int64)(op), 1, false)
 	if len(arg) > 0 {
 		script.script += arg
 	}
@@ -261,7 +255,7 @@ func (script *Script) add(op int, arg string) bool {
 
 // Add add param
 func Add(op int64, arg string) string {
-	rs := utils.Int2Hex((int64)(op), 1, false)
+	rs := hex.FromInt((int64)(op), 1, false)
 	if len(arg) > 0 {
 		rs += arg
 	}
