@@ -13,7 +13,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/yitimo/neon-go/libs/utils"
+	"github.com/ext-studio/neon-go/libs/utils"
 )
 
 type (

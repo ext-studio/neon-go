@@ -7,7 +7,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/yitimo/neon-go/libs/utils"
+	"github.com/ext-studio/neon-go/libs/utils"
 )
 
 /*FromVarInt parse int value to hex string, add var prefix to it if needed

@@ -13,7 +13,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/yitimo/neon-go/libs/crypto"
+	"github.com/ext-studio/neon-go/libs/crypto"
 	"golang.org/x/crypto/ripemd160"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/text/unicode/norm"

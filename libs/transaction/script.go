@@ -3,7 +3,7 @@ package transaction
 import (
 	"strings"
 
-	"github.com/yitimo/neon-go/libs/hex"
+	"github.com/ext-studio/neon-go/libs/hex"
 )
 
 // Constants

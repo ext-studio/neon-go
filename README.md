@@ -17,5 +17,5 @@ completing
 ## Compile for Android
 
 ```
-gomobile bind -target=android -o="dist/android/neon-go.aar" -javapkg="com.yitimo.neon" github.com/yitimo/neon-go/libs/wallet github.com/yitimo/neon-go/libs/crypto github.com/yitimo/neon-go/libs/models github.com/yitimo/neon-go/libs/transaction github.com/yitimo/neon-go/libs/utils
+gomobile bind -target=android -o="dist/android/neon-go.aar" -javapkg="com.iwallic.neon" github.com/ext-studio/neon-go/libs/wallet github.com/ext-studio/neon-go/libs/crypto github.com/ext-studio/neon-go/libs/hex
 ```
