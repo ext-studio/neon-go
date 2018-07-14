@@ -53,6 +53,9 @@ func FromInt(num int64, size int, littleEnd bool) string {
 * 反向 hex 字符串
 **/
 func Reverse(hexStr string) string {
+	if hexStr[0:2] == "0x" {
+		hexStr = hexStr[2:]
+	}
 	pb, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return ""
@@ -66,7 +69,7 @@ func Reverse(hexStr string) string {
 func ToFixedNum(num float64, decimal int) string {
 	decimal = 8
 	num *= math.Pow10(decimal)
-	value := FromVarInt((int64)(num))
+	value := Int2HexInt((int64)(num))
 	return Reverse(strings.Repeat("0", 16-len(value)) + value)
 }
 
@@ -93,7 +96,7 @@ func FromString(src string) string {
 	return rs
 }
 
-/*FromInt2HexInt parse decimal int to hex string int and add 0 if needed
+/*Int2HexInt parse decimal int to hex string int and add 0 if needed
 * 将十进制数值转为十六进制, 若位数不够则补零
 **/
 func Int2HexInt(num int64) string {
