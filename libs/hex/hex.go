@@ -82,7 +82,7 @@ func Hash256(hexStr string) string {
 	hash := sha.Sum(nil)
 	sha.Reset()
 	sha.Write(hash)
-	return (string)(sha.Sum(nil))
+	return hex.EncodeToString(sha.Sum(nil))
 }
 
 /*FromString parse common string to hex string
