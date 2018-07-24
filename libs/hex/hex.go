@@ -77,12 +77,13 @@ func ToFixedNum(num float64, decimal int) string {
 * 对字符串进行两次 SHA256 序列化操作
 **/
 func Hash256(hexStr string) string {
-	sha := sha256.New()
-	sha.Write([]byte(hexStr))
-	hash := sha.Sum(nil)
-	sha.Reset()
-	sha.Write(hash)
-	return hex.EncodeToString(sha.Sum(nil))
+	buffer, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return ""
+	}
+	temp1 := sha256.Sum256(buffer)
+	temp2 := sha256.Sum256(temp1[:])
+	return hex.EncodeToString(utils.ReverseArray(temp2[:]))
 }
 
 /*FromString parse common string to hex string
